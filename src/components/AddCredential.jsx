@@ -1,159 +1,259 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import Layout from "../components/Layout";
+import PasswordGenerator from "../components/PasswordGenerator";
+import PasswordStrength from "../components/PasswordStrength";
+import { ToastContainer, toast } from "react-toastify";
+
 function AddCredential() {
-  const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [website, setWebsite] = useState("");
-  const [notes, setNotes] = useState("");
+    const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const [title, setTitle] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [website, setWebsite] = useState("");
+    const [notes, setNotes] = useState("");
 
-    try {
-      // Get JWT token stored during login
-      const token = localStorage.getItem("token");
+    const handleSubmit = async (e) => {
 
-      // Call Spring Boot API
-      const response = await fetch("http://localhost:8080/api/credential", {
-        method: "POST",
+        e.preventDefault();
 
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        try {
 
-        body: JSON.stringify({
-          title,
-          username,
-          password,
-          website,
-          notes,
-        }),
-      });
+            const token = localStorage.getItem("token");
 
-      if (!response.ok) {
-        throw new Error("Failed to add credential");
-      }
+            const response = await fetch(
+                "http://localhost:8080/api/credential",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        username,
+                        password,
+                        website,
+                        notes
+                    })
+                }
+            );
 
-      alert("Credential added successfully");
-      navigate("/vault"); // back to vault page after adding credential
-    } catch (error) {
-      console.error(error);
-      alert("Failed to add credential. Please try again.");
-    }
-  };
+            if (!response.ok) {
+                throw new Error("Failed to add credential");
+            }
 
-  const handleBack = () => {
-    navigate("/vault");
-  };
+            // alert("Credential added successfully");
+            toast.success("Credential added successfully");
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-8">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow">
-        <div flex gap-2>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
-            onClick={() => {
-              handleBack()
-            }}
-          >
-            <span className=" text-lg "> ← </span>
-          </button>
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            Add New Credential
-          </h1>
-        </div>
+            navigate("/vault");
 
-        <form onSubmit={handleSubmit}>
-          {/* Title */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Title
-            </label>
+        } catch (error) {
 
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
+            console.error(error);
 
-          {/* Username */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Username
-            </label>
+            // alert(
+            //     "Failed to add credential. Please try again."
+            // );
+            toast.error(
+                "Failed to add credential. Please try again."
+            );
 
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
+        }
+    };
 
-          {/* Password */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Password
-            </label>
 
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+    return (
+        <Layout>
 
-          {/* Website */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Website
-            </label>
+            <div className="max-w-3xl mx-auto">
 
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              type="text"
-              placeholder="Website"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-            />
-          </div>
+                {/* Header */}
+                <div className="mb-6">
 
-          {/* Notes */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Notes
-            </label>
+                    <button
+                        onClick={() => navigate("/vault")}
+                        className="text-blue-600 hover:underline mb-3"
+                    >
+                        ← Back to Vault
+                    </button>
 
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              type="text"
-              placeholder="Notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+                    <h1 className="text-3xl font-bold text-slate-800">
+                        Add Credential
+                    </h1>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out"
-          >
-            Add Credential
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+                    <p className="text-slate-500 mt-1">
+                        Store a new credential securely.
+                    </p>
+
+                </div>
+
+
+                <form
+                    onSubmit={handleSubmit}
+                    className="bg-white rounded-xl border border-slate-200 shadow-sm p-7"
+                >
+
+                    {/* Title */}
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Title
+                        </label>
+
+                        <input
+                            type="text"
+                            placeholder="e.g. Google"
+                            value={title}
+                            onChange={(e) =>
+                                setTitle(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    {/* Username */}
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Username
+                        </label>
+
+                        <input
+                            type="text"
+                            placeholder="Username or email"
+                            value={username}
+                            onChange={(e) =>
+                                setUsername(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    {/* Password */}
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Password
+                        </label>
+
+                        <div className="flex gap-2">
+
+                            <input
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
+                                placeholder="Enter password"
+                                value={password}
+                                onChange={(e) =>
+                                    setPassword(e.target.value)
+                                }
+                                className="flex-1 border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowPassword(!showPassword)
+                                }
+                                className="px-4 border border-slate-300 rounded-lg hover:bg-slate-100"
+                            >
+                                {showPassword
+                                    ? "Hide"
+                                    : "Show"}
+                            </button>
+
+                        </div>
+
+
+                        <PasswordGenerator
+                            setPassword={setPassword}
+                        />
+
+                        <PasswordStrength
+                            password={password}
+                        />
+
+                    </div>
+
+
+                    {/* Website */}
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Website
+                        </label>
+
+                        <input
+                            type="text"
+                            placeholder="https://example.com"
+                            value={website}
+                            onChange={(e) =>
+                                setWebsite(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    {/* Notes */}
+                    <div className="mb-6">
+
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Notes
+                        </label>
+
+                        <textarea
+                            rows="4"
+                            placeholder="Additional notes..."
+                            value={notes}
+                            onChange={(e) =>
+                                setNotes(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    {/* Buttons */}
+                    <div className="flex justify-end gap-3">
+
+                        <button
+                            type="button"
+                            onClick={() => navigate("/vault")}
+                            className="px-5 py-3 border border-slate-300 rounded-lg hover:bg-slate-100"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                        >
+                            Save Credential
+                        </button>
+
+                    </div>
+
+                </form>
+                < ToastContainer />
+
+            </div>
+
+        </Layout>
+    );
 }
 
 export default AddCredential;

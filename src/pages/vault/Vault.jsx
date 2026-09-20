@@ -1,327 +1,170 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import Layout from "../../components/Layout";
+import ShareCredential from "../../components/ShareCredential";
+import CredentialCard from "../../components/CredentialCard";
+
 function Vault() {
-  // =========================
-  // STATES
-  // =========================
-
-  // Store credentials received from backend
-  const [credentials, setCredentials] = useState([]);
-
-  // Loading state
-  const [loading, setLoading] = useState(true);
-
-  // Error message state
-  const [error, setError] = useState("");
-
-  // Store the credential selected for deletion
-  const [selectedCredential, setSelectedCredential] = useState(null);
-
-  // React Router navigation
   const navigate = useNavigate();
 
-  // =========================
-  // GET ALL CREDENTIALS
-  // =========================
+  const [credentials, setCredentials] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sharingCredential, setSharingCredential] = useState(null);
 
   const fetchCredentials = async () => {
     try {
-      // Get JWT token
       const token = localStorage.getItem("token");
 
-      // Call backend API
       const response = await fetch("http://localhost:8080/api/credential", {
-        method: "GET",
-
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Check if request failed
       if (!response.ok) {
         throw new Error("Failed to fetch credentials");
       }
 
-      // Convert JSON response
       const data = await response.json();
 
-      // Store credentials in state
       setCredentials(data);
-
-      // Clear previous error
-      setError("");
     } catch (error) {
       console.error(error);
-
-      setError("Failed to load credentials");
     } finally {
-      // Stop loading
       setLoading(false);
     }
   };
 
-  // =========================
-  // SOFT DELETE
-  // =========================
-
-  const handleSoftDelete = async () => {
-    try {
-      // Get JWT token
-      const token = localStorage.getItem("token");
-
-      // Call soft delete API
-      const response = await fetch(
-        `http://localhost:8080/api/credential/soft-delete/${selectedCredential.id}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      // Check if API failed
-      if (!response.ok) {
-        throw new Error("Failed to temporarily delete credential");
-      }
-
-      // Success message
-      alert("Credential moved to trash successfully");
-
-      // Close modal
-      setSelectedCredential(null);
-
-      // Reload credentials
-      fetchCredentials();
-    } catch (error) {
-      console.error(error);
-
-      alert("Failed to temporarily delete credential");
-    }
-  };
-
-  // =========================
-  // PERMANENT DELETE
-  // =========================
-
-  const handlePermanentDelete = async () => {
-    try {
-      // Get JWT token
-      const token = localStorage.getItem("token");
-
-      // Call permanent delete API
-      const response = await fetch(
-        `http://localhost:8080/api/credential/${selectedCredential.id}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      // Check if API failed
-      if (!response.ok) {
-        throw new Error("Failed to permanently delete credential");
-      }
-
-      // Success message
-      alert("Credential permanently deleted successfully");
-
-      // Close modal
-      setSelectedCredential(null);
-
-      // Reload credentials
-      fetchCredentials();
-    } catch (error) {
-      console.error(error);
-
-      alert("Failed to permanently delete credential");
-    }
-  };
-
-  // =========================
-    // LOGOUT
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/");
-    }
-
-  // =========================
-  // RUN WHEN PAGE OPENS
-  // =========================
-
-  React.useEffect(() => {
+  useEffect(() => {
     fetchCredentials();
   }, []);
 
-  // =========================
-  // UI
-  // =========================
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this credential?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `http://localhost:8080/api/credential/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete credential");
+      }
+
+      setCredentials(credentials.filter((credential) => credential.id !== id));
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete credential");
+    }
+  };
+
+  const filteredCredentials = credentials.filter((credential) => {
+    const searchText = search.toLowerCase();
+
+    return (
+      credential.title?.toLowerCase().includes(searchText) ||
+      credential.username?.toLowerCase().includes(searchText) ||
+      credential.website?.toLowerCase().includes(searchText)
+    );
+  });
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* PAGE HEADER */}
+    <Layout>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800">My Vault</h1>
 
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">My SecureVault</h1>
-            <div className="flex gap-3">
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-            onClick={() => navigate("/add-credential")}
-          >
-            + Add Credential
-          </button>
-
-          <button 
-           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-          onClick={()=> {handleLogout()}}
-          >
-            <a href="/">Logout</a>
-          </button>
-          </div>
+          <p className="text-slate-500 mt-1">
+            Manage all your stored credentials.
+          </p>
         </div>
 
-        {/* LOADING */}
+        <button
+          onClick={() => navigate("/add-credential")}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium"
+        >
+          + Add Credential
+        </button>
+      </div>
 
-        {loading && <p className="text-gray-600">Loading credentials...</p>}
+      {/* Search */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6">
+        <div className="relative">
+          <span className="absolute left-4 top-3 text-slate-400">🔍</span>
 
-        {/* ERROR */}
+          <input
+            type="text"
+            placeholder="Search by title, username or website..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-slate-200 rounded-lg pl-11 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
 
-        {error && <p className="text-red-500">{error}</p>}
+      {loading ? (
+        <div className="text-center py-20 text-slate-500">
+          Loading credentials...
+        </div>
+      ) : filteredCredentials.length === 0 ? (
+        <div className="bg-white border border-dashed border-slate-300 rounded-xl p-16 text-center">
+          <div className="text-5xl mb-4">🔐</div>
 
-        {/* NO CREDENTIALS */}
+          <h2 className="text-xl font-bold text-slate-800">
+            No credentials found
+          </h2>
 
-        {!loading && credentials.length === 0 && (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <p className="text-gray-500">No credentials found.</p>
-          </div>
-        )}
+          <p className="text-slate-500 mt-2">
+            Add your first credential to your vault.
+          </p>
 
-        {/* CREDENTIALS LIST */}
+          <button
+            onClick={() => navigate("/add-credential")}
+            className="mt-5 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700"
+          >
+            Add Credential
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredCredentials.map((credential) => (
+            <div key={credential.id}>
+              <CredentialCard
+                // key={credential.id}
+                credential={credential}
+                onDelete={handleDelete}
+                onShare={() => setSharingCredential(credential)}
+              />
 
-        <div className="grid gap-4">
-          {credentials.map((credential) => (
-            <div key={credential.id} className="bg-white p-6 rounded-lg shadow">
-              {/* TITLE */}
-
-              <h2 className="text-xl font-bold text-gray-800">
-                {credential.title}
-              </h2>
-
-              {/* USERNAME */}
-
-              <p className="text-gray-600 mt-2">
-                <span className="font-medium">Username:</span>{" "}
-                {credential.username}
-              </p>
-
-              {/* PASSWORD */}
-
-              <p className="text-gray-600 mt-2">
-                <span className="font-medium">Password:</span>{" "}
-                {credential.password}
-              </p>
-
-              {/* WEBSITE */}
-
-              <p className="text-gray-600">
-                <span className="font-medium">Website:</span>{" "}
-                {credential.website}
-              </p>
-
-              {/* NOTES */}
-
-              {credential.notes && (
-                <p className="text-gray-500 mt-3">{credential.notes}</p>
+              {sharingCredential?.id === credential.id && (
+                <div className="mt-3">
+                  <ShareCredential
+                    credentialId={credential.id}
+                    onClose={() => setSharingCredential(null)}
+                  />
+                </div>
               )}
-
-              {/* EDIT + DELETE BUTTONS */}
-
-              <div className="flex gap-3 mt-4">
-                {/* EDIT */}
-
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
-                  onClick={() => navigate(`/edit-credential/${credential.id}`)}
-                >
-                  Edit
-                </button>
-
-                {/* DELETE */}
-
-                <button
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-                  onClick={() => setSelectedCredential(credential)}
-                >
-                  Delete
-                </button>
-              </div>
             </div>
           ))}
         </div>
-
-        {/* ========================= */}
-        {/* DELETE CONFIRMATION MODAL */}
-        {/* ========================= */}
-
-        {selectedCredential && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Delete Credential
-              </h2>
-
-              <p className="text-gray-600 mb-2">
-                Are you sure you want to delete:
-              </p>
-
-              {/* SHOW SELECTED CREDENTIAL TITLE */}
-
-              <p className="font-bold text-gray-800 mb-6">
-                {selectedCredential.title}
-              </p>
-
-              <div className="flex flex-col gap-3">
-                {/* TEMPORARY / SOFT DELETE */}
-
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md"
-                  onClick={handleSoftDelete}
-                >
-                  Temporary Delete
-                </button>
-
-                {/* PERMANENT DELETE */}
-
-                <button
-                  className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
-                  onClick={handlePermanentDelete}
-                >
-                  Permanent Delete
-                </button>
-
-                {/* CANCEL */}
-
-                <button
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-md"
-                  onClick={() => setSelectedCredential(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </Layout>
   );
 }
 

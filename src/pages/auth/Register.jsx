@@ -1,102 +1,225 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
 function Register() {
-  
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  // success message state message
-  const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
-  // handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    try {
-      const response = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: username,
-          email: email,
-          password: password,
-        }),
-      });
+    const handleSubmit = async (e) => {
 
-      const data = await response.json();
+        e.preventDefault();
 
-      if (response.ok) {
-        setMessage("Registration successful");
+        setLoading(true);
 
-        // Clear form after successful registration
-        setUsername("");
-        setEmail("");
-        setPassword("");
-      } else {
-        setMessage(data.message || "Registration failed");
-      }
-    } catch (error) {
-      console.error(error);
-      setMessage("Something went wrong");
-    }
-  };
+        try {
 
-  return (
-    <div className ='flex items-center justify-center min-h-screen bg-gray-200' >
-      <div className='bg-white p-8 rounded-lg shadow-lg max-w-md w-full'>
-      <h1 className="text-center text-gray-800 font-medium mb-5">Register</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label className='block text-gray-700 text-sm font-medium mb-2'>Username*</label>
-          <input
-           className="w-full border border-gray-200 rounded-md px-3 py-2"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-          />
+            const response = await fetch(
+                "http://localhost:8080/api/auth/register",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(errorText);
+
+                throw new Error(
+                    "Registration failed! Please check your credential."
+                );
+            }
+
+            // alert(
+            //     "Registration successful. Please login."
+            // );
+            toast.success(
+                "Registration successful. Please login."
+            );
+
+            navigate("/login");
+
+        } catch (error) {
+
+            console.error(error);
+
+            // alert(
+            //     "Registration failed. Please try again."
+            // );
+            toast.error(
+                "Registration failed. Please try again."
+            );
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+
+    return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-10">
+
+            <div className="w-full max-w-md">
+
+                <div className="text-center text-white mb-8">
+
+                    <div className="text-5xl">
+                        🔐
+                    </div>
+
+                    <h1 className="text-3xl font-bold mt-3">
+                        SecureVault
+                    </h1>
+
+                    <p className="text-slate-400 mt-2">
+                        Create your secure vault
+                    </p>
+
+                </div>
+
+
+                <div className="bg-white rounded-2xl shadow-xl p-8">
+
+                    <h2 className="text-2xl font-bold text-slate-800">
+                        Create Account
+                    </h2>
+
+                    <p className="text-slate-500 mt-1 mb-6">
+                        Start securing your credentials.
+                    </p>
+
+
+                    <form onSubmit={handleSubmit}>
+
+                        <div className="mb-5">
+
+                            <label className="block text-sm font-medium mb-2">
+                                Username
+                            </label>
+
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) =>
+                                    setUsername(e.target.value)
+                                }
+                                placeholder="Choose username"
+                                className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+
+                        </div>
+
+
+                        <div className="mb-5">
+
+                            <label className="block text-sm font-medium mb-2">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) =>
+                                    setEmail(e.target.value)
+                                }
+                                placeholder="you@example.com"
+                                className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+
+                        </div>
+
+
+                        <div className="mb-6">
+
+                            <label className="block text-sm font-medium mb-2">
+                                Password
+                            </label>
+
+                            <div className="flex gap-2">
+
+                                <input
+                                    type={
+                                        showPassword
+                                            ? "text"
+                                            : "password"
+                                    }
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
+                                    placeholder="Create password"
+                                    className="flex-1 border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
+                                    className="px-3 border border-slate-300 rounded-lg"
+                                >
+                                    {showPassword
+                                        ? "Hide"
+                                        : "Show"}
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 rounded-lg font-semibold"
+                        >
+                            {loading
+                                ? "Creating..."
+                                : "Create Account"}
+                        </button>
+
+                    </form>
+
+
+                    <p className="text-center text-sm text-slate-500 mt-6">
+
+                        Already have an account?{" "}
+
+                        <button
+                            onClick={() =>
+                                navigate("/login")
+                            }
+                            className="text-blue-600 font-semibold hover:underline"
+                        >
+                            Login
+                        </button>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            < ToastContainer />
+
         </div>
-
-        <div>
-          <label 
-          className=" block text-gray-700 text-sm font-medium mb-2"
-          >Email*</label>
-
-          <input
-          className="w-full border border-gray-200 rounded-md px-3 py-2"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label
-          className="block text-gray-700 text-sm font-medium mb-2"
-          >Password*</label>
-          <input
-          className="w-full border border-gray-700 rounded-md px-3 py-2"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
-        <button 
-        className='w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out mt-4  '
-        type="submit">Register</button>
-      </form>
-
-      <p>{message}</p>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Register;

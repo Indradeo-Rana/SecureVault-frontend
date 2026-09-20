@@ -1,236 +1,304 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { useParams, useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
+import PasswordGenerator from "../components/PasswordGenerator";
+import PasswordStrength from "../components/PasswordStrength";
 
 function EditCredential() {
-  // Get ID from URL
-  const { id } = useParams();
 
-  const navigate = useNavigate();
+    const { id } = useParams();
+    const navigate = useNavigate();
 
-  // Form states
-  const [title, setTitle] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [website, setWebsite] = useState("");
-  const [notes, setNotes] = useState("");
+    const [title, setTitle] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [website, setWebsite] = useState("");
+    const [notes, setNotes] = useState("");
 
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
-  // ============================
-  // GET EXISTING CREDENTIAL
-  // ============================
 
-  const fetchCredential = async () => {
-    try {
-      // Get JWT token
-      const token = localStorage.getItem("token");
+    useEffect(() => {
 
-      // Call backend
-      const response = await fetch(
-        `http://localhost:8080/api/credential/${id}`,
-        {
-          method: "GET",
+        const fetchCredential = async () => {
 
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+            try {
 
-      if (!response.ok) {
-        throw new Error("Failed to load credential");
-      }
+                const token = localStorage.getItem("token");
 
-      // Convert JSON response
-      const data = await response.json();
+                const response = await fetch(
+                    `http://localhost:8080/api/credential/${id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
 
-      // Put existing backend data into form states
-      setTitle(data.title);
-      setUsername(data.username);
-      setPassword(data.password);
-      setWebsite(data.website);
-      setNotes(data.notes);
-    } catch (error) {
-      console.error(error);
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to fetch credential"
+                    );
+                }
 
-      alert("Failed to load credential");
-    } finally {
-      setLoading(false);
+                const data = await response.json();
+
+                setTitle(data.title || "");
+                setUsername(data.username || "");
+                setPassword(data.password || "");
+                setWebsite(data.website || "");
+                setNotes(data.notes || "");
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert("Failed to load credential");
+
+                navigate("/vault");
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        };
+
+        fetchCredential();
+
+    }, [id, navigate]);
+
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+        try {
+
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(
+                `http://localhost:8080/api/credential/${id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        username,
+                        password,
+                        website,
+                        notes
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Failed to update credential"
+                );
+            }
+
+            alert("Credential updated successfully");
+
+            navigate("/vault");
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Failed to update credential");
+
+        }
+
+    };
+
+
+    if (loading) {
+
+        return (
+            <Layout>
+                <div className="text-center py-20">
+                    Loading...
+                </div>
+            </Layout>
+        );
+
     }
-  };
 
-  // Run when page opens
-  useEffect(() => {
-    fetchCredential();
-  }, [id]);
 
-  // ============================
-  // UPDATE CREDENTIAL
-  // ============================
-
-  const handleSubmit = async (e) => {
-    // Prevent normal form reload
-    e.preventDefault();
-
-    try {
-      // Get JWT
-      const token = localStorage.getItem("token");
-
-      // Call PUT API
-      const response = await fetch(
-        `http://localhost:8080/api/credential/${id}`,
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            title,
-            username,
-            password,
-            website,
-            notes,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update credential");
-      }
-
-      alert("Credential updated successfully");
-
-      // Go back to Vault
-      navigate("/vault");
-    } catch (error) {
-      console.error(error);
-
-      alert("Failed to update credential");
-    }
-  };
-
-  // Show loading while GET API is running
-  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading credential...</p>
-      </div>
+        <Layout>
+
+            <div className="max-w-3xl mx-auto">
+
+                <div className="mb-6">
+
+                    <button
+                        onClick={() => navigate("/vault")}
+                        className="text-blue-600 hover:underline mb-3"
+                    >
+                        ← Back to Vault
+                    </button>
+
+                    <h1 className="text-3xl font-bold text-slate-800">
+                        Edit Credential
+                    </h1>
+
+                </div>
+
+
+                <form
+                    onSubmit={handleSubmit}
+                    className="bg-white rounded-xl border border-slate-200 shadow-sm p-7"
+                >
+
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium mb-2">
+                            Title
+                        </label>
+
+                        <input
+                            value={title}
+                            onChange={(e) =>
+                                setTitle(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium mb-2">
+                            Username
+                        </label>
+
+                        <input
+                            value={username}
+                            onChange={(e) =>
+                                setUsername(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium mb-2">
+                            Password
+                        </label>
+
+                        <div className="flex gap-2">
+
+                            <input
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
+                                value={password}
+                                onChange={(e) =>
+                                    setPassword(e.target.value)
+                                }
+                                className="flex-1 border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowPassword(!showPassword)
+                                }
+                                className="px-4 border border-slate-300 rounded-lg"
+                            >
+                                {showPassword
+                                    ? "Hide"
+                                    : "Show"}
+                            </button>
+
+                        </div>
+
+
+                        <PasswordGenerator
+                            setPassword={setPassword}
+                        />
+
+                        <PasswordStrength
+                            password={password}
+                        />
+
+                    </div>
+
+
+                    <div className="mb-5">
+
+                        <label className="block text-sm font-medium mb-2">
+                            Website
+                        </label>
+
+                        <input
+                            value={website}
+                            onChange={(e) =>
+                                setWebsite(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    <div className="mb-6">
+
+                        <label className="block text-sm font-medium mb-2">
+                            Notes
+                        </label>
+
+                        <textarea
+                            rows="4"
+                            value={notes}
+                            onChange={(e) =>
+                                setNotes(e.target.value)
+                            }
+                            className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                    </div>
+
+
+                    <div className="flex justify-end gap-3">
+
+                        <button
+                            type="button"
+                            onClick={() => navigate("/vault")}
+                            className="px-5 py-3 border rounded-lg hover:bg-slate-100"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            Update Credential
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </Layout>
     );
-  }
-
-  const handleBack = () => {
-    navigate("/vault");
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-8">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow">
-        <div className="flex gap-2">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
-            onClick={() => {
-              handleBack();
-            }}
-          >
-            <span className=" text-lg "> ← </span>
-          </button>
-
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            Edit Credential
-          </h1>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {/* TITLE */}
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Title
-            </label>
-
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-
-          {/* USERNAME */}
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Username
-            </label>
-
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-
-          {/* PASSWORD */}
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Password
-            </label>
-
-            <input
-              type="password"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          {/* WEBSITE */}
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Website
-            </label>
-
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-            />
-          </div>
-
-          {/* NOTES */}
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Notes
-            </label>
-
-            <textarea
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-
-          {/* BUTTON */}
-
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md"
-          >
-            Update Credential
-          </button>
-        </form>
-      </div>
-    </div>
-  );
 }
 
 export default EditCredential;
