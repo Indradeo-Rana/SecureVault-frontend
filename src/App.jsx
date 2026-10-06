@@ -7,12 +7,10 @@ import Vault from "./pages/vault/Vault";
 import AddCredential from "./components/AddCredential";
 import EditCredential from "./components/EditCredential";
 import RecycleCredential from "./components/RecycleCredential";
-import PasswordGenerator from "./components/PasswordGenerator";
 import PasswordHealth from "./pages/PasswordHealth";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Trash from "./pages/Trash";
 import Settings from "./pages/Settings";
-
 import PasswordGeneratorPage from "./pages/PasswordGeneratorPage";
 import ReceivedShares from "./pages/sharing/ReceivedShares";
 import SentShares from "./pages/sharing/SentShares";
@@ -21,6 +19,18 @@ import ViewCredential from "./pages/sharing/ViewCredential";
 import TeamDetails from "./pages/team/TeamDetails";
 import AddTeamCredential from "./pages/team/AddTeamCredential";
 import EditTeamCredential from "./pages/team/EditTeamCredential";
+import LoginHistory from "./pages/security/LoginHistory";
+import SecurityDashboard from "./pages/security/SecurityDashboard";
+import AuditLogs from "./pages/security/AuditLogs";
+import PasswordAnalytics from "./pages/security/PasswordAnalytics";
+import SecurityReports from "./pages/security/SecurityReports";
+import MfaVerification from "./pages/mfa/MfaVerification";
+import SecuritySettings from "./pages/SecuritySettings";
+import ForgotPassword from "./pages/mfa/ForgotPassword";
+import ResetPassword from "./pages/mfa/ResetPassword";
+import OAuth2Success from "./pages/OAuth2Sucess";
+import Devices from "./pages/Devices";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -30,7 +40,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+        <Route path="/mfa-verification" element={<MfaVerification />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/oauth2/success" element={<OAuth2Success />} />
+        <Route path="/devices" element={<Devices />} />
         {/* Protected Routes */}
         <Route
           path="/dashboard"
@@ -156,6 +169,76 @@ function App() {
           element={
             <ProtectedRoute>
               <EditTeamCredential />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/credential/:id"
+          element={
+            <ProtectedRoute>
+              <ViewCredential />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/login-history"
+          element={
+            <ProtectedRoute>
+              <LoginHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/security"
+          element={
+            <ProtectedRoute>
+              <SecurityDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/audit-logs"
+          element={
+            <ProtectedRoute>
+              <AuditLogs />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/security/password-analytics"
+          element={
+            <ProtectedRoute>
+              <PasswordAnalytics />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/security/reports"
+          element={
+            <ProtectedRoute>
+              <SecurityReports />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/security-settings"
+          element={
+            <ProtectedRoute>
+              <SecuritySettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
             </ProtectedRoute>
           }
         />

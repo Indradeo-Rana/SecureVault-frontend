@@ -1,37 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
+import API_BASE_URL from "../../config/api";
 import Layout from "../../components/Layout";
 import TeamCredentialCard from "../../components/TeamCredentialCard";
+import {ToastContainer, toast } from "react-toastify";
 
 function TeamDetails() {
 
-    const { teamId } =
-        useParams();
+    const { teamId } = useParams();
 
-    const navigate =
-        useNavigate();
+    const navigate = useNavigate();
 
-    const [team, setTeam] =
-        useState(null);
+    const [team, setTeam] = useState(null);
 
-    const [members, setMembers] =
-        useState([]);
+    const [members, setMembers] = useState([]);
 
-    const [credentials, setCredentials] =
-        useState([]);
+    const [credentials, setCredentials] = useState([]);
 
-    const [username, setUsername] =
-        useState("");
+    const [username, setUsername] = useState("");
 
-    const [role, setRole] =
-        useState("MEMBER");
+    const [role, setRole] = useState("MEMBER");
 
-    const [loading, setLoading] =
-        useState(true);
+    const [loading, setLoading] = useState(true);
 
-    const [addingMember, setAddingMember] =
-        useState(false);
+    const [addingMember, setAddingMember] = useState(false);
 
     const fetchTeamData = async () => {
 
@@ -52,30 +44,27 @@ function TeamDetails() {
             ] = await Promise.all([
 
                 fetch(
-                    `http://localhost:8080/api/teams/${teamId}`,
+                    `${API_BASE_URL}/api/teams/${teamId}`,
                     { headers }
                 ),
 
                 fetch(
-                    `http://localhost:8080/api/teams/${teamId}/members`,
+                    `${API_BASE_URL}/api/teams/${teamId}/members`,
                     { headers }
                 ),
 
                 fetch(
-                    `http://localhost:8080/api/teams/${teamId}/credentials`,
+                   `${API_BASE_URL}/api/teams/${teamId}/credentials`,
                     { headers }
                 )
 
             ]);
 
-            const teamText =
-                await teamResponse.text();
+            const teamText = await teamResponse.text();
 
-            const membersText =
-                await membersResponse.text();
+            const membersText = await membersResponse.text();
 
-            const credentialsText =
-                await credentialsResponse.text();
+            const credentialsText = await credentialsResponse.text();
 
             if (!teamResponse.ok) {
                 throw new Error(
@@ -118,9 +107,12 @@ function TeamDetails() {
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "An error occurred while fetching team data"
+            );
 
         } finally {
 
@@ -139,7 +131,8 @@ function TeamDetails() {
         e.preventDefault();
 
         if (!username.trim()) {
-            alert("Username is required");
+            // alert("Username is required");
+            toast.error("Username is required");
             return;
         }
 
@@ -151,7 +144,7 @@ function TeamDetails() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/teams/${teamId}/members`,
+                `${API_BASE_URL}/api/teams/${teamId}/members`,
                 {
                     method: "POST",
 
@@ -202,15 +195,21 @@ function TeamDetails() {
 
             setRole("MEMBER");
 
-            alert(
+            // alert(
+            //     "Member added successfully"
+            // );
+            toast.success(
                 "Member added successfully"
             );
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "An error occurred while adding member"
+            );
 
         } finally {
 
@@ -228,7 +227,7 @@ function TeamDetails() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/teams/${teamId}/credentials/${teamCredentialId}`,
+                `${API_BASE_URL}/api/teams/${teamId}/credentials/${teamCredentialId}`,
                 {
                     headers: {
                         Authorization:
@@ -269,9 +268,12 @@ function TeamDetails() {
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "An error occurred while fetching credential data"
+            );
         }
     };
 
@@ -294,7 +296,7 @@ function TeamDetails() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/teams/${teamId}/credentials/${teamCredentialId}`,
+                `${API_BASE_URL}/api/teams/${teamId}/credentials/${teamCredentialId}`,
                 {
                     method: "DELETE",
 
@@ -325,15 +327,21 @@ function TeamDetails() {
                     )
             );
 
-            alert(
+            // alert(
+            //     "Team credential deleted successfully"
+            // );
+            toast.success(
                 "Team credential deleted successfully"
             );
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "An error occurred while deleting credential"
+            );
         }
     };
 
@@ -626,6 +634,7 @@ function TeamDetails() {
                     )}
 
                 </div>
+                 < ToastContainer />
 
             </div>
 

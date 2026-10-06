@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
+import API_BASE_URL from "../../config/api";
 
 function Register() {
 
@@ -21,7 +22,7 @@ function Register() {
         try {
 
             const response = await fetch(
-                "http://localhost:8080/api/auth/register",
+                `${API_BASE_URL}/api/auth/register`,
                 {
                     method: "POST",
                     headers: {

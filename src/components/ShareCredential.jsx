@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../config/api";
 
 function ShareCredential({ credentialId, onClose }) {
 
@@ -18,7 +20,7 @@ function ShareCredential({ credentialId, onClose }) {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:8080/api/shares",
+                `${API_BASE_URL}/api/shares`,
                 {
                     method: "POST",
 
@@ -48,7 +50,8 @@ function ShareCredential({ credentialId, onClose }) {
                 );
             }
 
-            alert("Credential shared successfully");
+            // alert("Credential shared successfully");
+            toast.success("Credential shared successfully");
 
             onClose();
 
@@ -59,7 +62,11 @@ function ShareCredential({ credentialId, onClose }) {
                 error
             );
 
-            alert(error.message);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "Failed to share credential. Please try again later."
+            );
 
         } finally {
 
@@ -177,6 +184,7 @@ function ShareCredential({ credentialId, onClose }) {
                 </div>
 
             </form>
+             < ToastContainer />
 
         </div>
     );

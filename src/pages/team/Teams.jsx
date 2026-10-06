@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
+import { ToastContainer,toast } from "react-toastify";
+import API_BASE_URL from "../../config/api";
 
 function Teams() {
   const navigate = useNavigate();
@@ -18,7 +20,7 @@ function Teams() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:8080/api/teams/mine", {
+      const response = await fetch(`${API_BASE_URL}/api/teams/mine`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -35,7 +37,8 @@ function Teams() {
       setTeams(data);
     } catch (error) {
       console.error(error);
-      alert(error.message);
+      toast.error(error.message || "Failed to load teams");
+      // alert(error.message);
     } finally {
       setLoading(false);
     }
@@ -45,7 +48,8 @@ function Teams() {
     e.preventDefault();
 
     if (!teamName.trim()) {
-      alert("Team name is required");
+      // alert("Team name is required");
+      toast.error("Team name is required");
       return;
     }
 
@@ -54,7 +58,7 @@ function Teams() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:8080/api/teams", {
+      const response = await fetch(`${API_BASE_URL}/api/teams`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,7 +85,8 @@ function Teams() {
 
       setTeamName("");
 
-      alert("Team created successfully");
+      // alert("Team created successfully");
+      toast.success("Team created successfully");
     } catch (error) {
       console.error(error);
       alert(error.message);
@@ -106,7 +111,7 @@ function Teams() {
             localStorage.getItem("token");
 
         const response = await fetch(
-            `http://localhost:8080/api/teams/${teamId}`,
+            `${API_BASE_URL}/api/teams/${teamId}`,
             {
                 method: "DELETE",
 
@@ -137,13 +142,18 @@ function Teams() {
                 )
         );
 
-        alert("Team deleted successfully");
+        // alert("Team deleted successfully");
+        toast.success("Team deleted successfully");
 
     } catch (error) {
 
         console.error(error);
 
-        alert(error.message);
+        // alert(error.message);
+        toast.error(
+            error.message ||
+            "Failed to delete team"
+        );
     }
 };
 
@@ -260,6 +270,7 @@ function Teams() {
               </button>
             </form>
           </div>
+          <ToastContainer />
         </>
       )}
     </Layout>

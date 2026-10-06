@@ -4,6 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import PasswordGenerator from "../components/PasswordGenerator";
 import PasswordStrength from "../components/PasswordStrength";
+import { ToastContainer,toast } from "react-toastify";
+import API_BASE_URL from "../config/api";
 
 function EditCredential() {
 
@@ -29,7 +31,7 @@ function EditCredential() {
                 const token = localStorage.getItem("token");
 
                 const response = await fetch(
-                    `http://localhost:8080/api/credential/${id}`,
+                    `${API_BASE_URL}/api/credential/${id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
@@ -55,7 +57,11 @@ function EditCredential() {
 
                 console.error(error);
 
-                alert("Failed to load credential");
+                // alert("Failed to load credential");
+                toast.error(
+                    error.message ||
+                    "Failed to load credential. Please try again later."
+                );
 
                 navigate("/vault");
 
@@ -81,7 +87,7 @@ function EditCredential() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/credential/${id}`,
+                `${API_BASE_URL}/api/credential/${id}`,
                 {
                     method: "PUT",
                     headers: {
@@ -104,7 +110,8 @@ function EditCredential() {
                 );
             }
 
-            alert("Credential updated successfully");
+            // alert("Credential updated successfully");
+            toast.success("Credential updated successfully");
 
             navigate("/vault");
 
@@ -112,7 +119,11 @@ function EditCredential() {
 
             console.error(error);
 
-            alert("Failed to update credential");
+            // alert("Failed to update credential");
+            toast.error(
+                error.message ||
+                "Failed to update credential. Please try again later."
+            );
 
         }
 
@@ -294,6 +305,7 @@ function EditCredential() {
                     </div>
 
                 </form>
+                 < ToastContainer />
 
             </div>
 

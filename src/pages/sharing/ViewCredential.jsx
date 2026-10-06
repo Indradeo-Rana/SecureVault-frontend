@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/Layout";
+import {ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../../config/api";
 
 function ViewCredential() {
 
@@ -22,7 +24,7 @@ function ViewCredential() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/credential/${id}`,
+                `${API_BASE_URL}/api/credential/${id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -45,9 +47,12 @@ function ViewCredential() {
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "Failed to load credential. Please try again later."
+            );
 
             navigate("/shared-with-me");
 
@@ -81,7 +86,7 @@ function ViewCredential() {
 
                 <button
                     onClick={() =>
-                        navigate("/shared-with-me")
+                        navigate("/vault")
                     }
                     className="mb-5 text-blue-600 hover:underline"
                 >
@@ -188,6 +193,7 @@ function ViewCredential() {
                     </div>
 
                 </div>
+                 < ToastContainer />
 
             </div>
 

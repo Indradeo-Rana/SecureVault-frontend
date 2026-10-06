@@ -3,29 +3,25 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import PasswordGenerator from "../../components/PasswordGenerator";
 import PasswordStrength from "../../components/PasswordStrength";
+import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../../config/api";
 
 function AddTeamCredential() {
 
     const { teamId } = useParams();
     const navigate = useNavigate();
 
-    const [title, setTitle] =
-        useState("");
+    const [title, setTitle] = useState("");
 
-    const [username, setUsername] =
-        useState("");
+    const [username, setUsername] = useState("");
 
-    const [password, setPassword] =
-        useState("");
+    const [password, setPassword] = useState("");
 
-    const [website, setWebsite] =
-        useState("");
+    const [website, setWebsite] = useState("");
 
-    const [notes, setNotes] =
-        useState("");
+    const [notes, setNotes] =  useState("");
 
-    const [loading, setLoading] =
-        useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
 
@@ -39,7 +35,7 @@ function AddTeamCredential() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/teams/${teamId}/credentials`,
+                `${API_BASE_URL}/api/teams/${teamId}/credentials`,
                 {
                     method: "POST",
 
@@ -72,7 +68,10 @@ function AddTeamCredential() {
                 );
             }
 
-            alert(
+            // alert(
+            //     "Team credential added successfully"
+            // );
+            toast.success(
                 "Team credential added successfully"
             );
 
@@ -82,9 +81,9 @@ function AddTeamCredential() {
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(error.message);
 
         } finally {
 
@@ -246,7 +245,8 @@ function AddTeamCredential() {
 
                 </div>
 
-            </div>
+            </div> 
+            < ToastContainer />
 
         </div>
     );

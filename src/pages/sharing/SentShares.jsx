@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
+import { ToastContainer,toast } from "react-toastify";
+import API_BASE_URL from "../../config/api";
 
 function SentShares() {
 
@@ -17,7 +19,7 @@ function SentShares() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:8080/api/shares/sent",
+                `${API_BASE_URL}/api/shares/sent`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -35,8 +37,9 @@ function SentShares() {
 
         } catch (error) {
 
-            console.error(error);
-            alert("Failed to load sent shares");
+            // console.error(error);
+            // alert("Failed to load sent shares");
+            toast.error("Failed to fetch sent shares. Please try again later.");
 
         } finally {
 
@@ -47,9 +50,15 @@ function SentShares() {
 
     const revokeShare = async (shareId) => {
 
-        const confirmed = window.confirm(
-            "Are you sure you want to revoke this access?"
-        );
+        toast.info("Are you sure you want to revoke access? This action cannot be undone.", {
+            position: "top-center",
+            autoClose: false,
+            closeOnClick: false,
+            draggable: false,
+            onClose: () => {
+                // If the user closes the toast without confirming, do nothing
+            }
+        });
 
         if (!confirmed) {
             return;
@@ -60,7 +69,7 @@ function SentShares() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/shares/${shareId}`,
+                `${API_BASE_URL}/api/shares/${shareId}`,
                 {
                     method: "DELETE",
                     headers: {
@@ -79,12 +88,14 @@ function SentShares() {
                 )
             );
 
-            alert("Access revoked successfully");
+            // alert("Access revoked successfully");
+            toast.success("Access revoked successfully");
 
         } catch (error) {
 
-            console.error(error);
-            alert("Failed to revoke access");
+            // console.error(error);
+            // alert("Failed to revoke access");
+            toast.error("Failed to revoke access. Please try again later.");
 
         }
     };
@@ -99,7 +110,7 @@ function SentShares() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/shares/${shareId}`,
+                `${API_BASE_URL}/api/shares/${shareId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -132,12 +143,17 @@ function SentShares() {
                 )
             );
 
-            alert("Permission updated");
+            // alert("Permission updated");
+            toast.success("Permission updated successfully");
 
         } catch (error) {
 
-            console.error(error);
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "Failed to update permission. Please try again later."
+            );
 
         }
     };
@@ -170,6 +186,13 @@ function SentShares() {
                     <p className="text-slate-500">
                         You have not shared any credentials.
                     </p>
+                    <button
+                        type="button"
+                        onClick={() => { window.location.href = "/vault"; }}
+                        className="mt-6 inline-flex items-center cursor-pointer rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                        Go to Vault
+                    </button>
 
                 </div>
 
@@ -262,6 +285,7 @@ function SentShares() {
 
                     ))}
 
+< ToastContainer />
                 </div>
 
             )}

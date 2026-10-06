@@ -18,7 +18,7 @@ function RecycleCredential() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:8080/api/credential/soft-deleted",
+                `${API_BASE_URL}/api/credential/soft-deleted`,
                {
                     method: "GET",
 

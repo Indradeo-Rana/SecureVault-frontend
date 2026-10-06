@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import PasswordGenerator from "../../components/PasswordGenerator";
 import PasswordStrength from "../../components/PasswordStrength";
+import {ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../../config/api";
 
 function EditTeamCredential() {
 
@@ -11,29 +13,21 @@ function EditTeamCredential() {
         teamCredentialId
     } = useParams();
 
-    const navigate =
-        useNavigate();
+    const navigate = useNavigate();
 
-    const [title, setTitle] =
-        useState("");
+    const [title, setTitle] = useState("");
 
-    const [username, setUsername] =
-        useState("");
+    const [username, setUsername] = useState("");
 
-    const [password, setPassword] =
-        useState("");
+    const [password, setPassword] = useState("");
 
-    const [website, setWebsite] =
-        useState("");
+    const [website, setWebsite] = useState("");
 
-    const [notes, setNotes] =
-        useState("");
+    const [notes, setNotes] = useState("");
 
-    const [loading, setLoading] =
-        useState(true);
+    const [loading, setLoading] = useState(true);
 
-    const [saving, setSaving] =
-        useState(false);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
 
@@ -49,7 +43,7 @@ function EditTeamCredential() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/teams/${teamId}/credentials/${teamCredentialId}`,
+                `${API_BASE_URL}/api/teams/${teamId}/credentials/${teamCredentialId}`,
                 {
                     headers: {
                         Authorization:
@@ -99,9 +93,12 @@ function EditTeamCredential() {
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "An error occurred while fetching credential data"
+            );
 
             navigate(
                 `/teams/${teamId}`
@@ -125,7 +122,7 @@ function EditTeamCredential() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:8080/api/teams/${teamId}/credentials/${teamCredentialId}`,
+                `${API_BASE_URL}/api/teams/${teamId}/credentials/${teamCredentialId}`,
                 {
                     method: "PUT",
 
@@ -158,8 +155,8 @@ function EditTeamCredential() {
                 );
             }
 
-            alert(
-                "Team credential updated successfully"
+            toast.success(
+                "Credential updated successfully"
             );
 
             navigate(
@@ -168,9 +165,12 @@ function EditTeamCredential() {
 
         } catch (error) {
 
-            console.error(error);
-
-            alert(error.message);
+            // console.error(error);
+            // alert(error.message);
+            toast.error(
+                error.message ||
+                "An error occurred while updating credential"
+            );
 
         } finally {
 
@@ -337,6 +337,7 @@ function EditTeamCredential() {
                 </div>
 
             </div>
+             < ToastContainer />
 
         </div>
     );

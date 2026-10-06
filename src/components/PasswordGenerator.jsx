@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { ToastContainer,toast } from "react-toastify";
+import API_BASE_URL from "../config/api";
 
 function PasswordGenerator({ setPassword }) {
 
@@ -17,7 +19,7 @@ function PasswordGenerator({ setPassword }) {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:8080/api/password-generator",
+                `${API_BASE_URL}/api/password-generator`,
                 {
                     method: "POST",
                     headers: {
@@ -60,7 +62,8 @@ function PasswordGenerator({ setPassword }) {
                 error
             );
 
-            alert("Failed to generate password");
+            // alert("Failed to generate password");
+            toast.error("Failed to generate password. Please try again later.");
 
         }
     };
@@ -182,6 +185,7 @@ function PasswordGenerator({ setPassword }) {
                 </div>
 
             )}
+            <ToastContainer />
 
         </div>
     );

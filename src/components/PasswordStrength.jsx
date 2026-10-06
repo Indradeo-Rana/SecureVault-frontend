@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../config/api";
 
 function PasswordStrength({ password }) {
 
@@ -25,7 +26,7 @@ function PasswordStrength({ password }) {
                 const token = localStorage.getItem("token");
 
                 const response = await fetch(
-                    "http://localhost:8080/api/password-strength",
+                    `${API_BASE_URL}/api/password-strength`,
                     {
                         method: "POST",
                         headers: {
