@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SharedCredentialCard from "../../components/SharedCredentialCard";
 import Layout from "../../components/Layout";
+import { Inbox } from "lucide-react";
 import API_BASE_URL from "../../config/api";
 
 function ReceivedShares() {
@@ -123,9 +124,7 @@ function ReceivedShares() {
 
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
 
-                    <div className="text-4xl mb-3">
-                        📭
-                    </div>
+                    <Inbox className="mx-auto mb-3 text-slate-400" size={40} aria-hidden="true" />
 
                     <h2 className="text-lg font-semibold text-slate-700">
                         No Shared Credentials

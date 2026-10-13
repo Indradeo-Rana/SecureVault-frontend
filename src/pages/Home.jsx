@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { KeyRound, LockKeyhole, ShieldCheck, Zap } from "lucide-react";
 
 function Home() {
 
@@ -15,9 +16,7 @@ function Home() {
 
                     <div className="flex items-center gap-3">
 
-                        <span className="text-3xl">
-                            🔐
-                        </span>
+                        <LockKeyhole size={28} aria-hidden="true" />
 
                         <span className="text-xl font-bold">
                             SecureVault
@@ -26,7 +25,7 @@ function Home() {
                     </div>
 
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap justify-end gap-3">
 
                         <button
                             onClick={() => navigate("/login")}
@@ -54,8 +53,8 @@ function Home() {
 
                 <div className="max-w-3xl">
 
-                    <div className="inline-block px-4 py-2 bg-blue-900/40 text-blue-400 rounded-full text-sm mb-6">
-                        🔒 Secure Password Management
+                    <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-900/40 px-4 py-2 text-sm text-blue-400">
+                        <KeyRound size={16} aria-hidden="true" /> Secure Password Management
                     </div>
 
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight">
@@ -72,7 +71,7 @@ function Home() {
                     </p>
 
 
-                    <div className="flex gap-4 mt-8">
+                    <div className="mt-8 flex flex-wrap gap-4">
 
                         <button
                             onClick={() => navigate("/register")}
@@ -97,7 +96,7 @@ function Home() {
                 <div className="grid md:grid-cols-3 gap-6 mt-24">
 
                     <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-                        <div className="text-3xl mb-4">🔐</div>
+                        <LockKeyhole className="mb-4 text-blue-400" size={30} aria-hidden="true" />
                         <h3 className="font-bold text-xl">
                             Secure Storage
                         </h3>
@@ -107,7 +106,7 @@ function Home() {
                     </div>
 
                     <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-                        <div className="text-3xl mb-4">⚡</div>
+                        <Zap className="mb-4 text-blue-400" size={30} aria-hidden="true" />
                         <h3 className="font-bold text-xl">
                             Password Generator
                         </h3>
@@ -117,7 +116,7 @@ function Home() {
                     </div>
 
                     <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-                        <div className="text-3xl mb-4">🛡️</div>
+                        <ShieldCheck className="mb-4 text-blue-400" size={30} aria-hidden="true" />
                         <h3 className="font-bold text-xl">
                             Password Health
                         </h3>

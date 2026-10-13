@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Edit3, Eye, KeyRound } from "lucide-react";
 
 function SharedCredentialCard({ share }) {
 
@@ -18,12 +19,13 @@ function SharedCredentialCard({ share }) {
     };
 
     return (
+        
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
 
-            <div className="flex items-start justify-between">
+            <div className="flex flex-wrap items-start justify-between gap-3">
 
-                <div>
-                    <h2 className="text-xl font-bold text-slate-800">
+                <div className="min-w-0">
+                    <h2 className="truncate text-xl font-bold text-slate-800">
                         {share.credentialTitle}
                     </h2>
 
@@ -32,21 +34,22 @@ function SharedCredentialCard({ share }) {
                     </p>
                 </div>
 
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                <span className="shrink-0 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
                     {share.permission}
                 </span>
 
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
 
                 {/* VIEW */}
                 <button
                     type="button"
                     onClick={handleView}
-                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                    className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-blue-700 hover:bg-blue-200"
                 >
-                    👁 View
+                    <Eye size={16} aria-hidden="true" />
+                    View
                 </button>
 
                 {/* EDIT */}
@@ -54,9 +57,10 @@ function SharedCredentialCard({ share }) {
                     <button
                         type="button"
                         onClick={handleEdit}
-                        className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
+                        className="flex items-center gap-2 rounded-lg bg-yellow-100 px-4 py-2 text-yellow-700 hover:bg-yellow-200"
                     >
-                        ✏ Edit
+                        <Edit3 size={16} aria-hidden="true" />
+                        Edit
                     </button>
                 )}
 
@@ -78,6 +82,7 @@ function SharedCredentialCard({ share }) {
             </div>
 
         </div>
+       
     );
 }
 

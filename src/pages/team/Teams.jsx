@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import { ToastContainer,toast } from "react-toastify";
+import { Eye, Trash2, Users } from "lucide-react";
 import API_BASE_URL from "../../config/api";
 
 function Teams() {
@@ -191,7 +192,7 @@ function Teams() {
 
             {teams.length === 0 ? (
               <div className="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center">
-                <div className="text-5xl mb-4">👥</div>
+                <Users className="mx-auto mb-4 text-slate-400" size={48} aria-hidden="true" />
 
                 <h3 className="text-lg font-bold">No teams yet</h3>
 
@@ -205,8 +206,8 @@ function Teams() {
                     className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-2xl">
-                        👥
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                        <Users size={24} aria-hidden="true" />
                       </div>
 
                       <div>
@@ -220,19 +221,21 @@ function Teams() {
                       </div>
                     </div>
 
-                    <div className="mt-5 flex gap-2">
+                    <div className="mt-5 flex flex-wrap gap-2">
                       <button
                         onClick={() => navigate(`/teams/${team.id}`)}
-                        className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200"
+                        className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-blue-700 hover:bg-blue-200"
                       >
+                        <Eye size={16} aria-hidden="true" />
                         Open Team
                       </button>
 
                       <button
                         onClick={() => handleDeleteTeam(team.id)}
-                        className="bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200"
+                        className="flex items-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200"
                       >
-                        🗑 Delete
+                        <Trash2 size={16} aria-hidden="true" />
+                        Delete
                       </button>
                     </div>
                   </div>

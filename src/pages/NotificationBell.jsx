@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 import API_BASE_URL from "../config/api";
 
 function NotificationBell() {
@@ -120,9 +121,7 @@ function NotificationBell() {
                 className="relative p-2 rounded-lg hover:bg-slate-100"
             >
 
-                <span className="text-xl">
-                    🔔
-                </span>
+                <Bell size={21} aria-hidden="true" />
 
                 {count > 0 && (
                     <span

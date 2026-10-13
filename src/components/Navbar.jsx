@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import API_BASE_URL from "../config/api";
+import { Bell, Search } from "lucide-react";
 
 function Navbar() {
 
@@ -74,9 +75,7 @@ function Navbar() {
 
                 <div className="relative">
 
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                        🔍
-                    </span>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} aria-hidden="true" />
 
                     <input
                         type="text"
@@ -96,11 +95,11 @@ function Navbar() {
                 <button
                     type="button"
                     onClick={handleNotificationClick}
-                    className="relative text-xl sm:text-2xl hover:bg-slate-100 p-2 rounded-lg transition"
+                    className="relative rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                     aria-label="Notifications"
                 >
 
-                    🔔
+                    <Bell size={21} aria-hidden="true" />
 
                     {/* Unread Badge */}
                     {unreadCount > 0 && (

@@ -1,5 +1,6 @@
 import React from "react";
 import Layout from "../components/Layout";
+import { HeartPulse } from "lucide-react";
 
 function PasswordHealth() {
 
@@ -19,9 +20,7 @@ function PasswordHealth() {
 
                 <div className="mt-8 bg-white rounded-xl border border-slate-200 p-10 text-center">
 
-                    <div className="text-5xl">
-                        🩺
-                    </div>
+                    <HeartPulse className="mx-auto text-blue-600" size={48} aria-hidden="true" />
 
                     <h2 className="text-2xl font-bold mt-5">
                         Password Health

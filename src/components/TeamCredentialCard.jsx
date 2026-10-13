@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Edit3, Eye, KeyRound, Trash2 } from "lucide-react";
 
 function TeamCredentialCard({
     credential,
@@ -18,8 +19,8 @@ function TeamCredentialCard({
 
                 <div className="flex items-center gap-3">
 
-                    <div className="w-11 h-11 rounded-lg bg-blue-100 flex items-center justify-center text-xl">
-                        🔑
+                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                        <KeyRound size={21} aria-hidden="true" />
                     </div>
 
                     <div>
@@ -112,9 +113,10 @@ function TeamCredentialCard({
                 <button
                     type="button"
                     onClick={onView}
-                    className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200"
+                    className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-blue-700 hover:bg-blue-200"
                 >
-                    👁 View
+                    <Eye size={16} aria-hidden="true" />
+                    View
                 </button>
 
                 {canManage && (
@@ -124,17 +126,19 @@ function TeamCredentialCard({
                         <button
                             type="button"
                             onClick={onEdit}
-                            className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg hover:bg-yellow-200"
+                            className="flex items-center gap-2 rounded-lg bg-yellow-100 px-4 py-2 text-yellow-700 hover:bg-yellow-200"
                         >
-                            ✏ Edit
+                            <Edit3 size={16} aria-hidden="true" />
+                            Edit
                         </button>
 
                         <button
                             type="button"
                             onClick={onDelete}
-                            className="bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200"
+                            className="flex items-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200"
                         >
-                            🗑 Delete
+                            <Trash2 size={16} aria-hidden="true" />
+                            Delete
                         </button>
 
                     </>

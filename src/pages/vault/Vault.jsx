@@ -4,6 +4,7 @@ import Layout from "../../components/Layout";
 import ShareCredential from "../../components/ShareCredential";
 import API_BASE_URL from "../../config/api";
 import { ToastContainer, toast } from "react-toastify";
+import { FileText, KeyRound, Search, Star } from "lucide-react";
 
 function Vault() {
     const navigate = useNavigate();
@@ -479,7 +480,7 @@ function Vault() {
                     <div className="relative">
 
                         <span className="absolute left-4 top-3 text-slate-400">
-                            🔍
+                            <Search size={18} aria-hidden="true" />
                         </span>
 
                         <input
@@ -569,7 +570,8 @@ function Vault() {
                                         : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                                 }`}
                             >
-                                ⭐ Favorites
+                                <Star size={16} fill={favoriteOnly ? "currentColor" : "none"} aria-hidden="true" />
+                                Favorites
                             </button>
 
                         </div>
@@ -654,9 +656,7 @@ function Vault() {
                     filteredCredentials.length === 0 && (
                         <div className="bg-white border border-dashed border-slate-300 rounded-xl p-16 text-center">
 
-                            <div className="text-5xl mb-4">
-                                🔐
-                            </div>
+                            <KeyRound className="mx-auto mb-4 text-slate-400" size={48} aria-hidden="true" />
 
                             <h2 className="text-xl font-bold text-slate-800">
                                 No credentials found
@@ -815,9 +815,7 @@ function Vault() {
                                                                             : "text-slate-300 hover:text-amber-400"
                                                                     }`}
                                                                 >
-                                                                    {favorite
-                                                                        ? "★"
-                                                                        : "☆"}
+                                                                    <Star size={18} fill={favorite ? "currentColor" : "none"} aria-hidden="true" />
                                                                 </button>
 
                                                             </td>
@@ -827,10 +825,10 @@ function Vault() {
 
                                                                 <div className="flex items-center gap-3">
 
-                                                                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                                                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
                                                                         {isSecureNote
-                                                                            ? "📝"
-                                                                            : "🔐"}
+                                                                            ? <FileText size={18} aria-hidden="true" />
+                                                                            : <KeyRound size={18} aria-hidden="true" />}
                                                                     </div>
 
                                                                     <div>

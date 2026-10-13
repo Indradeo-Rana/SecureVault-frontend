@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ToastContainer,toast } from "react-toastify";
 import API_BASE_URL from "../config/api";
+import { ChevronDown, ChevronUp, Zap } from "lucide-react";
 
 function PasswordGenerator({ setPassword }) {
 
@@ -75,11 +76,11 @@ function PasswordGenerator({ setPassword }) {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="inline-flex items-center gap-1.5 font-medium text-blue-600 hover:text-blue-800"
             >
                 {isOpen
-                    ? "Hide Password Generator ▲"
-                    : "⚡ Generate Password ▼"}
+                    ? <><span>Hide Password Generator</span><ChevronUp size={16} aria-hidden="true" /></>
+                    : <><Zap size={16} aria-hidden="true" /><span>Generate Password</span><ChevronDown size={16} aria-hidden="true" /></>}
             </button>
 
 

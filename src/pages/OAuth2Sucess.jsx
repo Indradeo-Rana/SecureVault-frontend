@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { LockKeyhole } from "lucide-react";
 
 export default function OAuth2Success() {
 
@@ -41,9 +42,7 @@ export default function OAuth2Success() {
 
             <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
 
-                <div className="text-4xl mb-4">
-                    🔐
-                </div>
+                <LockKeyhole className="mx-auto mb-4 text-blue-600" size={40} aria-hidden="true" />
 
                 <h2 className="text-xl font-bold text-slate-800">
                     Signing you in...

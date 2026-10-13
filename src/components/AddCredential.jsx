@@ -408,7 +408,7 @@ function AddCredential() {
                             />
 
                             <span className="text-sm font-medium text-slate-700">
-                                Add to favorites ⭐
+                                Add to favorites
                             </span>
 
                         </label>

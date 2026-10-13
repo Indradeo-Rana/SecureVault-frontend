@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API_BASE_URL from "../../config/api";
 import Layout from "../../components/Layout";
+import { LockKeyhole } from "lucide-react";
 import TeamCredentialCard from "../../components/TeamCredentialCard";
 import {ToastContainer, toast } from "react-toastify";
 
@@ -566,9 +567,7 @@ function TeamDetails() {
 
                         <div className="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center">
 
-                            <div className="text-4xl mb-3">
-                                🔐
-                            </div>
+                            <LockKeyhole className="mx-auto mb-3 text-slate-400" size={40} aria-hidden="true" />
 
                             <p className="text-slate-500">
                                 No team credentials yet.

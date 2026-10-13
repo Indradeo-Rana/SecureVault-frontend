@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import API_BASE_URL from "../config/api";
+import { AlertTriangle, Bell, Handshake, KeyRound, LockKeyhole, ShieldCheck } from "lucide-react";
 
 function Notifications() {
 
@@ -155,22 +156,22 @@ function Notifications() {
         switch (type) {
 
             case "LOGIN_ALERT":
-                return "🔐";
+                return <LockKeyhole size={18} aria-hidden="true" />;
 
             case "SECURITY_NOTIFICATION":
-                return "🛡️";
+                return <ShieldCheck size={18} aria-hidden="true" />;
 
             case "SHARING_NOTIFICATION":
-                return "🤝";
+                return <Handshake size={18} aria-hidden="true" />;
 
             case "PASSWORD_EXPIRATION_ALERT":
-                return "🔑";
+                return <KeyRound size={18} aria-hidden="true" />;
 
             case "RISK_ALERT":
-                return "⚠️";
+                return <AlertTriangle size={18} aria-hidden="true" />;
 
             default:
-                return "🔔";
+                return <Bell size={18} aria-hidden="true" />;
         }
     };
 
@@ -303,9 +304,7 @@ function Notifications() {
 
                     <div className="bg-white border border-slate-200 rounded-xl p-8 sm:p-12 text-center shadow-sm">
 
-                        <div className="text-5xl mb-4">
-                            🔔
-                        </div>
+                        <Bell className="mx-auto mb-4 text-slate-400" size={48} aria-hidden="true" />
 
                         <h2 className="text-lg sm:text-xl font-semibold text-slate-800">
                             No notifications

@@ -109,15 +109,10 @@ export default function MfaVerification() {
 
             const responseText = await response.text();
 
-            console.log(
-                "MFA response status:",
-                response.status
-            );
-
-            console.log(
-                "MFA response:",
-                responseText
-            );
+            // console.log(
+            //     "MFA response status:",
+            //     response.status
+            // );
 
 
             let data = {};

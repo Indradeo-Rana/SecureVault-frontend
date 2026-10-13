@@ -3,6 +3,16 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import { getFirebaseToken } from "./../../firebase";
 import API_BASE_URL from "../../config/api";
+import {
+  AlertTriangle,
+  BarChart3,
+  ClipboardList,
+  KeyRound,
+  LockKeyhole,
+  Plus,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
 const API_BASE = `${API_BASE_URL}`;
 
@@ -158,31 +168,31 @@ function Dashboard() {
   // ------------------------------------
 
   const getActivityIcon = (type) => {
-    if (!type) return "•";
+    if (!type) return <ShieldCheck size={17} aria-hidden="true" />;
 
     const value = type.toLowerCase();
 
     if (value.includes("login")) {
-      return "🔐";
+      return <LockKeyhole size={17} aria-hidden="true" />;
     }
 
     if (value.includes("alert")) {
-      return "🚨";
+      return <AlertTriangle size={17} aria-hidden="true" />;
     }
 
     if (value.includes("suspicious")) {
-      return "⚠️";
+      return <AlertTriangle size={17} aria-hidden="true" />;
     }
 
     if (value.includes("audit")) {
-      return "📋";
+      return <ClipboardList size={17} aria-hidden="true" />;
     }
 
     if (value.includes("credential")) {
-      return "🔑";
+      return <KeyRound size={17} aria-hidden="true" />;
     }
 
-    return "•";
+    return <ShieldCheck size={17} aria-hidden="true" />;
   };
 
   const formatActivityType = (type) => {
@@ -651,7 +661,7 @@ function Dashboard() {
 
             {security.recentSecurityActivity.length === 0 ? (
               <div className="mt-6 rounded-lg border border-dashed border-slate-300 p-8 text-center">
-                <div className="text-3xl">🛡️</div>
+                <ShieldCheck className="mx-auto text-slate-400" size={32} aria-hidden="true" />
 
                 <p className="mt-3 font-medium text-slate-700">
                   No recent activity
@@ -714,21 +724,24 @@ function Dashboard() {
                 onClick={() => navigate("/password-generator")}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                🔑 Generate password
+                <KeyRound size={17} aria-hidden="true" />
+                Generate password
               </button>
 
               <button
                 onClick={() => navigate("/shared-with-me")}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                👥 Shared With Me
+                <Users size={17} aria-hidden="true" />
+                Shared With Me
               </button>
 
               <button
                 onClick={() => navigate("/security/reports")}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                📊 Security reports
+                <BarChart3 size={17} aria-hidden="true" />
+                Security reports
               </button>
             </div>
           </div>

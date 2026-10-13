@@ -1,5 +1,6 @@
 import React from "react";
 import Layout from "../components/Layout";
+import { Trash2 } from "lucide-react";
 
 function Trash() {
 
@@ -17,9 +18,7 @@ function Trash() {
 
             <div className="mt-8 bg-white rounded-xl border border-slate-200 p-10 text-center">
 
-                <div className="text-5xl">
-                    🗑️
-                </div>
+                <Trash2 className="mx-auto text-slate-500" size={48} aria-hidden="true" />
 
                 <h2 className="text-xl font-bold mt-4">
                     Trash Management

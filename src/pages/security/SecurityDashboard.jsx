@@ -1,52 +1,64 @@
-import { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
-import {ToastContainer, toast } from "react-toastify";
-import API_BASE_URL from "../../config/api";
 
+import { useCallback, useEffect, useState } from "react";
+import Layout from "../../components/Layout";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../../config/api";
+import { AlertTriangle, Bell, CheckCircle2, Info, XCircle } from "lucide-react";
+
+const API_ROOT =
+    typeof API_BASE_URL === "string"
+        ? API_BASE_URL.replace(/\/+$/, "")
+        : String(
+              API_BASE_URL?.baseURL ??
+              API_BASE_URL?.API_BASE_URL ??
+              API_BASE_URL?.url ??
+              ""
+          ).replace(/\/+$/, "");
 
 const SecurityDashboard = () => {
     const [range, setRange] = useState("TODAY");
-
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-
     const [analytics, setAnalytics] = useState(null);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // --------------------------------------------------
-    // Fetch Analytics
-    // --------------------------------------------------
+    const fetchAnalytics = useCallback(async () => {
+        if (range === "CUSTOM") {
+            if (!startDate || !endDate) {
+                setError("Please select both start date and end date.");
+                return;
+            }
 
-    const fetchAnalytics = async () => {
+            if (startDate > endDate) {
+                setError("Start date cannot be after end date.");
+                return;
+            }
+        }
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            setError("Your session has expired. Please login again.");
+            setAnalytics(null);
+            setLoading(false);
+            return;
+        }
+
         try {
             setLoading(true);
             setError("");
 
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                throw new Error("You are not logged in.");
-            }
-
-            const requestBody = {
-                range: range,
-            };
+            const requestBody = { range };
 
             if (range === "CUSTOM") {
-                if (!startDate || !endDate) {
-                    setLoading(false);
-                    setError("Please select both start date and end date.");
-                    return;
-                }
-
                 requestBody.startDate = startDate;
                 requestBody.endDate = endDate;
             }
 
             const response = await fetch(
-                `${API_BASE_URL}/api/analytics/security`,
+                `${API_ROOT}/api/analytics/security`,
                 {
                     method: "POST",
                     headers: {
@@ -59,52 +71,39 @@ const SecurityDashboard = () => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    throw new Error(
-                        "Your session has expired. Please login again."
-                    );
+                    throw new Error("Your session has expired. Please login again.");
                 }
 
                 if (response.status === 403) {
-                    throw new Error(
-                        "You are not authorized to view security analytics."
-                    );
+                    throw new Error("You are not authorized to view security analytics.");
                 }
 
-                throw new Error("Failed to load security analytics.");
+                throw new Error(
+                    await response.text() || "Failed to load security analytics."
+                );
             }
 
-            const data = await response.json();
-
-            setAnalytics(data);
+            setAnalytics(await response.json());
         } catch (err) {
             console.error("Security analytics error:", err);
-            toast.error(
-                err.message || "Something went wrong while loading analytics."
-            );
-
-            setError(
-                err.message || "Something went wrong while loading analytics."
-            );
-
             setAnalytics(null);
+            setError(err.message || "Unable to load security analytics.");
+            toast.error(err.message || "Unable to load analytics.");
         } finally {
             setLoading(false);
         }
-    };
-
-    // --------------------------------------------------
-    // Initial load + Today / Last 7 Days change
-    // --------------------------------------------------
+    }, [range, startDate, endDate]);
 
     useEffect(() => {
         if (range === "TODAY" || range === "LAST_7_DAYS") {
             fetchAnalytics();
         }
-    }, [range]);
+    }, [range, fetchAnalytics]);
 
-    // --------------------------------------------------
-    // Custom Date Apply
-    // --------------------------------------------------
+    const handleRangeChange = (selectedRange) => {
+        setRange(selectedRange);
+        setError("");
+    };
 
     const handleCustomDateApply = () => {
         if (!startDate || !endDate) {
@@ -117,582 +116,441 @@ const SecurityDashboard = () => {
             return;
         }
 
-        setError("");
         fetchAnalytics();
     };
 
-    // --------------------------------------------------
-    // Range Button
-    // --------------------------------------------------
+    const exportCSV = () => {
+        if (!analytics) {
+            toast.error("Load analytics before exporting.");
+            return;
+        }
 
-    const handleRangeChange = (selectedRange) => {
-        setRange(selectedRange);
-        setError("");
+        const rows = [
+            ["SecureVault Security Analytics"],
+            ["Start Date", analytics.startDate],
+            ["End Date", analytics.endDate],
+            [],
+            ["Metric", "Value"],
+            ["Successful Logins", analytics.successfulLogins ?? 0],
+            ["Failed Logins", analytics.failedLogins ?? 0],
+            ["Suspicious Activities", analytics.suspiciousActivities ?? 0],
+            ["Active Security Alerts", analytics.activeSecurityAlerts ?? 0],
+            [],
+            ["Timestamp", "Activity Type", "Description"],
+            ...(analytics.recentSecurityActivity || []).map((activity) => [
+                activity.timestamp ?? "",
+                activity.type ?? "",
+                activity.description ?? "",
+            ]),
+        ];
+
+        const csv = rows
+            .map((row) =>
+                row
+                    .map((value) => {
+                        let safe = String(value ?? "");
+
+                        if (/^[=+\-@\t\r]/.test(safe)) {
+                            safe = `'${safe}`;
+                        }
+
+                        return `"${safe.replace(/"/g, '""')}"`;
+                    })
+                    .join(",")
+            )
+            .join("\r\n");
+
+        const blob = new Blob(["\uFEFF", csv], {
+            type: "text/csv;charset=utf-8;",
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = `securevault-analytics-${analytics.startDate}-to-${analytics.endDate}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success("Analytics CSV downloaded.");
     };
-
-    // --------------------------------------------------
-    // Activity Icon
-    // --------------------------------------------------
 
     const getActivityIcon = (type) => {
-        switch (type) {
-            case "LOGIN_SUCCESS":
-                return (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
-                        ✓
-                    </div>
-                );
+        const styles = {
+            LOGIN_SUCCESS: "bg-green-100 text-green-700",
+            LOGIN_FAILURE: "bg-red-100 text-red-700",
+            SECURITY_ALERT: "bg-orange-100 text-orange-700",
+            AUDIT: "bg-blue-100 text-blue-700",
+        };
 
-            case "LOGIN_FAILURE":
-                return (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
-                        !
-                    </div>
-                );
+        const symbols = {
+            LOGIN_SUCCESS: <CheckCircle2 size={18} aria-hidden="true" />,
+            LOGIN_FAILURE: <XCircle size={18} aria-hidden="true" />,
+            SECURITY_ALERT: <AlertTriangle size={18} aria-hidden="true" />,
+            AUDIT: <Info size={18} aria-hidden="true" />,
+        };
 
-            case "SECURITY_ALERT":
-                return (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                        ⚠
-                    </div>
-                );
-
-            case "AUDIT":
-                return (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                        ⓘ
-                    </div>
-                );
-
-            default:
-                return (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600">
-                        •
-                    </div>
-                );
-        }
-    };
-
-    // --------------------------------------------------
-    // Activity Label
-    // --------------------------------------------------
-
-    const getActivityLabel = (type) => {
-        switch (type) {
-            case "LOGIN_SUCCESS":
-                return "Successful Login";
-
-            case "LOGIN_FAILURE":
-                return "Failed Login";
-
-            case "SECURITY_ALERT":
-                return "Security Alert";
-
-            case "AUDIT":
-                return "Audit Activity";
-
-            default:
-                return "Security Activity";
-        }
-    };
-
-    // --------------------------------------------------
-    // Loading
-    // --------------------------------------------------
-
-    if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 p-6">
-                <div className="mx-auto max-w-7xl">
-
-                    <div className="mb-8">
-                        <div className="h-8 w-64 animate-pulse rounded bg-gray-200"></div>
-                        <div className="mt-3 h-4 w-96 animate-pulse rounded bg-gray-200"></div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        {[1, 2, 3, 4].map((item) => (
-                            <div
-                                key={item}
-                                className="h-32 animate-pulse rounded-2xl bg-white shadow-sm"
-                            ></div>
-                        ))}
-                    </div>
-
-                    <div className="mt-8 h-96 animate-pulse rounded-2xl bg-white shadow-sm"></div>
-                </div>
+            <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                    styles[type] || "bg-slate-100 text-slate-600"
+                }`}
+                aria-label={getActivityLabel(type)}
+            >
+                {symbols[type] || <Info size={18} aria-hidden="true" />}
             </div>
         );
-    }
+    };
 
-    // --------------------------------------------------
-    // Main UI
-    // --------------------------------------------------
+    const getActivityLabel = (type) => {
+        const labels = {
+            LOGIN_SUCCESS: "Successful Login",
+            LOGIN_FAILURE: "Failed Login",
+            SECURITY_ALERT: "Security Alert",
+            AUDIT: "Audit Activity",
+        };
+
+        return labels[type] || "Security Activity";
+    };
+
+    const formatTimestamp = (timestamp) => {
+        if (!timestamp) return "Time unavailable";
+
+        const date = new Date(timestamp);
+
+        return Number.isNaN(date.getTime())
+            ? String(timestamp)
+            : date.toLocaleString();
+    };
+
+    const metricCards = [
+        {
+            title: "Successful Logins",
+            value: analytics?.successfulLogins,
+            description: "Authentication completed successfully",
+            color: "text-green-700",
+            icon: <CheckCircle2 size={22} aria-hidden="true" />,
+            iconStyle: "bg-green-100",
+        },
+        {
+            title: "Failed Logins",
+            value: analytics?.failedLogins,
+            description: "Unsuccessful login attempts",
+            color: "text-red-700",
+            icon: <XCircle size={22} aria-hidden="true" />,
+            iconStyle: "bg-red-100",
+        },
+        {
+            title: "Suspicious Activities",
+            value: analytics?.suspiciousActivities,
+            description: "Recorded security events",
+            color: "text-orange-700",
+            icon: <AlertTriangle size={22} aria-hidden="true" />,
+            iconStyle: "bg-orange-100",
+        },
+        {
+            title: "Active Security Alerts",
+            value: analytics?.activeSecurityAlerts,
+            description: "Alerts currently requiring attention",
+            color: "text-purple-700",
+            icon: <Bell size={22} aria-hidden="true" />,
+            iconStyle: "bg-purple-100",
+        },
+    ];
 
     return (
-        <Layout >
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <Layout>
+            <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+                <div className="mx-auto max-w-7xl">
+                    {/* Header */}
+                    <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+                                Security Dashboard
+                            </h1>
 
-            <div className="mx-auto max-w-7xl">
-
-                {/* =====================================================
-                    HEADER
-                ====================================================== */}
-
-                <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                            Security Dashboard
-                        </h1>
-
-                        <p className="mt-2 text-sm text-gray-500 sm:text-base">
-                            Monitor your account security and recent activity.
-                        </p>
-
-                        {analytics && (
-                            <p className="mt-2 text-xs text-gray-400">
-                                Showing data from{" "}
-                                <span className="font-medium text-gray-500">
-                                    {analytics.startDate}
-                                </span>{" "}
-                                to{" "}
-                                <span className="font-medium text-gray-500">
-                                    {analytics.endDate}
-                                </span>
+                            <p className="mt-2 text-sm text-slate-500 sm:text-base">
+                                Monitor account security and recent activity.
                             </p>
-                        )}
-                    </div>
 
-                    {/* Range Selector */}
-
-                    <div className="rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
-
-                        <div className="flex flex-wrap gap-1">
-
-                            <button
-                                onClick={() =>
-                                    handleRangeChange("TODAY")
-                                }
-                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                                    range === "TODAY"
-                                        ? "bg-gray-900 text-white shadow"
-                                        : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                            >
-                                Today
-                            </button>
-
-                            <button
-                                onClick={() =>
-                                    handleRangeChange("LAST_7_DAYS")
-                                }
-                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                                    range === "LAST_7_DAYS"
-                                        ? "bg-gray-900 text-white shadow"
-                                        : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                            >
-                                Last 7 Days
-                            </button>
-
-                            <button
-                                onClick={() =>
-                                    handleRangeChange("CUSTOM")
-                                }
-                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                                    range === "CUSTOM"
-                                        ? "bg-gray-900 text-white shadow"
-                                        : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                            >
-                                Custom
-                            </button>
-
+                            {analytics && (
+                                <p className="mt-2 text-xs text-slate-500">
+                                    Showing {analytics.startDate} to {analytics.endDate}
+                                </p>
+                            )}
                         </div>
-                    </div>
-                </div>
 
+                        <button
+                            onClick={exportCSV}
+                            disabled={!analytics || loading}
+                            className="w-full rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                        >
+                            Export Analytics CSV
+                        </button>
+                    </header>
 
-                {/* =====================================================
-                    ERROR
-                ====================================================== */}
+                    {/* Date range */}
+                    <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                        <h2 className="mb-4 text-base font-semibold text-slate-900">
+                            Select reporting period
+                        </h2>
 
-                {error && (
-                    <div className="mb-6 flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                ["TODAY", "Today"],
+                                ["LAST_7_DAYS", "Last 7 Days"],
+                                ["CUSTOM", "Custom"],
+                            ].map(([value, label]) => (
+                                <button
+                                    key={value}
+                                    onClick={() => handleRangeChange(value)}
+                                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                        range === value
+                                            ? "bg-slate-900 text-white"
+                                            : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
 
-                        <div className="flex items-center gap-3">
+                        {range === "CUSTOM" && (
+                            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                <div>
+                                    <label
+                                        htmlFor="analytics-start-date"
+                                        className="mb-2 block text-sm font-medium text-slate-700"
+                                    >
+                                        Start Date
+                                    </label>
 
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 text-red-600">
-                                !
+                                    <input
+                                        id="analytics-start-date"
+                                        type="date"
+                                        value={startDate}
+                                        max={endDate || undefined}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label
+                                        htmlFor="analytics-end-date"
+                                        className="mb-2 block text-sm font-medium text-slate-700"
+                                    >
+                                        End Date
+                                    </label>
+
+                                    <input
+                                        id="analytics-end-date"
+                                        type="date"
+                                        value={endDate}
+                                        min={startDate || undefined}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+                                    />
+                                </div>
+
+                                <div className="flex items-end">
+                                    <button
+                                        onClick={handleCustomDateApply}
+                                        disabled={loading}
+                                        className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                                    >
+                                        {loading ? "Loading..." : "Apply Date Range"}
+                                    </button>
+                                </div>
                             </div>
+                        )}
+                    </section>
 
+                    {/* Error state */}
+                    {error && !loading && (
+                        <section
+                            role="alert"
+                            className="mb-6 flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        >
                             <p className="text-sm font-medium text-red-700">
                                 {error}
                             </p>
 
-                        </div>
+                            <button
+                                onClick={fetchAnalytics}
+                                className="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                            >
+                                Retry
+                            </button>
+                        </section>
+                    )}
 
-                        <button
-                            onClick={fetchAnalytics}
-                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    {/* Loading state */}
+                    {loading && (
+                        <section
+                            aria-label="Loading security analytics"
+                            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
                         >
-                            Retry
-                        </button>
-
-                    </div>
-                )}
-
-
-                {/* =====================================================
-                    CUSTOM DATE RANGE
-                ====================================================== */}
-
-                {range === "CUSTOM" && (
-                    <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-
-                        <div className="mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Select Date Range
-                            </h2>
-
-                            <p className="mt-1 text-sm text-gray-500">
-                                Choose the period you want to analyze.
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Start Date
-                                </label>
-
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) =>
-                                        setStartDate(e.target.value)
-                                    }
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                            {[1, 2, 3, 4].map((item) => (
+                                <div
+                                    key={item}
+                                    className="h-36 animate-pulse rounded-2xl border border-slate-100 bg-white"
                                 />
-                            </div>
-
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    End Date
-                                </label>
-
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) =>
-                                        setEndDate(e.target.value)
-                                    }
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
-                                />
-                            </div>
-
-                            <div className="flex items-end">
-
-                                <button
-                                    onClick={handleCustomDateApply}
-                                    className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
-                                >
-                                    Apply Date Range
-                                </button>
-
-                            </div>
-
-                        </div>
-                    </div>
-                )}
-
-
-                {/* =====================================================
-                    ANALYTICS CARDS
-                ====================================================== */}
-
-                {analytics && (
-                    <>
-                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-
-                            {/* Successful Logins */}
-
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-
-                                <div className="flex items-start justify-between">
-
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">
-                                            Successful Logins
-                                        </p>
-
-                                        <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                                            {analytics.successfulLogins}
-                                        </h2>
-
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            Login attempts completed successfully
-                                        </p>
-                                    </div>
-
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-xl text-green-600">
-                                        ✓
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* Failed Logins */}
-
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-
-                                <div className="flex items-start justify-between">
-
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">
-                                            Failed Logins
-                                        </p>
-
-                                        <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                                            {analytics.failedLogins}
-                                        </h2>
-
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            Unsuccessful login attempts
-                                        </p>
-                                    </div>
-
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-xl text-red-600">
-                                        !
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* Suspicious Activities */}
-
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-
-                                <div className="flex items-start justify-between">
-
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">
-                                            Suspicious Activities
-                                        </p>
-
-                                        <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                                            {analytics.suspiciousActivities}
-                                        </h2>
-
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            Security events detected
-                                        </p>
-                                    </div>
-
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-100 text-xl text-orange-600">
-                                        ⚠
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* Active Alerts */}
-
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-
-                                <div className="flex items-start justify-between">
-
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">
-                                            Active Security Alerts
-                                        </p>
-
-                                        <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                                            {analytics.activeSecurityAlerts}
-                                        </h2>
-
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            Unread security alerts
-                                        </p>
-                                    </div>
-
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 text-xl text-purple-600">
-                                        🔔
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* =====================================================
-                            RECENT ACTIVITY
-                        ====================================================== */}
-
-                        <div className="mt-8 rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-                            <div className="border-b border-gray-100 px-5 py-5 sm:px-6">
-
-                                <div className="flex items-center justify-between">
-
-                                    <div>
-                                        <h2 className="text-lg font-semibold text-gray-900">
-                                            Recent Security Activity
-                                        </h2>
-
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Latest security-related events from your account.
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* Activity List */}
-
-                            {analytics.recentSecurityActivity &&
-                            analytics.recentSecurityActivity.length > 0 ? (
-
-                                <div className="divide-y divide-gray-100">
-
-                                    {analytics.recentSecurityActivity.map(
-                                        (activity, index) => (
-
-                                            <div
-                                                key={`${activity.type}-${activity.timestamp}-${index}`}
-                                                className="flex items-center gap-4 px-5 py-4 transition hover:bg-gray-50 sm:px-6"
-                                            >
-
-                                                {/* Icon */}
-
-                                                {getActivityIcon(activity.type)}
-
-
-                                                {/* Content */}
-
-                                                <div className="min-w-0 flex-1">
-
-                                                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-
-                                                        <div>
-
-                                                            <p className="truncate text-sm font-semibold text-gray-900">
-                                                                {activity.description}
-                                                            </p>
-
-                                                            <p className="mt-1 text-xs text-gray-500">
-                                                                {getActivityLabel(
-                                                                    activity.type
-                                                                )}
-                                                            </p>
-
-                                                        </div>
-
-                                                        <p className="whitespace-nowrap text-xs text-gray-400">
-                                                            {new Date(
-                                                                activity.timestamp
-                                                            ).toLocaleString()}
-                                                        </p>
-
-                                                    </div>
-
+                            ))}
+                        </section>
+                    )}
+
+                    {/* Analytics */}
+                    {!loading && analytics && (
+                        <>
+                            <section>
+                                <h2 className="mb-4 text-lg font-bold text-slate-900">
+                                    Security Overview
+                                </h2>
+
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                                    {metricCards.map((metric) => (
+                                        <div
+                                            key={metric.title}
+                                            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-slate-500">
+                                                        {metric.title}
+                                                    </p>
+
+                                                    <p className={`mt-3 break-words text-3xl font-bold ${metric.color}`}>
+                                                        {metric.value ?? 0}
+                                                    </p>
                                                 </div>
 
+                                                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg ${metric.iconStyle}`}>
+                                                    {metric.icon}
+                                                </div>
                                             </div>
 
-                                        )
-                                    )}
-
+                                            <p className="mt-3 text-xs leading-5 text-slate-400">
+                                                {metric.description}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
+                            </section>
 
-                            ) : (
-
-                                /* Empty State */
-
-                                <div className="px-6 py-16 text-center">
-
-                                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl text-gray-400">
-                                        ✓
-                                    </div>
-
-                                    <h3 className="mt-4 text-base font-semibold text-gray-900">
-                                        No security activity
-                                    </h3>
-
-                                    <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
-                                        There is no security activity recorded
-                                        for the selected date range.
-                                    </p>
-
-                                </div>
-
-                            )}
-
-                        </div>
-
-
-                        {/* =====================================================
-                            SECURITY STATUS
-                        ====================================================== */}
-
-                        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-                                <div>
-
-                                    <h2 className="text-base font-semibold text-gray-900">
-                                        Security Overview
+                            {/* Recent activity */}
+                            <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="border-b border-slate-100 px-5 py-5 sm:px-6">
+                                    <h2 className="text-lg font-semibold text-slate-900">
+                                        Recent Security Activity
                                     </h2>
 
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Current activity summary for the selected period.
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Recent events for the selected period.
                                     </p>
-
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                {Array.isArray(analytics.recentSecurityActivity) &&
+                                analytics.recentSecurityActivity.length > 0 ? (
+                                    <div className="divide-y divide-slate-100">
+                                        {analytics.recentSecurityActivity.map(
+                                            (activity, index) => (
+                                                <article
+                                                    key={`${activity.type || "activity"}-${activity.timestamp || index}-${index}`}
+                                                    className="flex items-start gap-3 px-4 py-4 transition hover:bg-slate-50 sm:items-center sm:gap-4 sm:px-6"
+                                                >
+                                                    {getActivityIcon(activity.type)}
 
-                                    <span
-                                        className={`h-2.5 w-2.5 rounded-full ${
-                                            analytics.activeSecurityAlerts > 0
-                                                ? "bg-orange-500"
-                                                : "bg-green-500"
-                                        }`}
-                                    ></span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="break-words text-sm font-semibold text-slate-900">
+                                                            {activity.description || getActivityLabel(activity.type)}
+                                                        </p>
 
-                                    <span className="text-sm font-medium text-gray-700">
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            {getActivityLabel(activity.type)}
+                                                        </p>
 
-                                        {analytics.activeSecurityAlerts > 0
-                                            ? "Attention required"
-                                            : "No active alerts"}
+                                                        <p className="mt-2 text-xs text-slate-400 sm:hidden">
+                                                            {formatTimestamp(activity.timestamp)}
+                                                        </p>
+                                                    </div>
 
-                                    </span>
+                                                    <time className="hidden shrink-0 text-xs text-slate-400 sm:block">
+                                                        {formatTimestamp(activity.timestamp)}
+                                                    </time>
+                                                </article>
+                                            )
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="px-5 py-14 text-center sm:px-6">
+                                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-500">
+                                            ✓
+                                        </div>
 
+                                        <h3 className="mt-4 font-semibold text-slate-900">
+                                            No security activity
+                                        </h3>
+
+                                        <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+                                            No events were recorded for the selected date range.
+                                        </p>
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Security status */}
+                            <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <h2 className="font-semibold text-slate-900">
+                                            Account Security Status
+                                        </h2>
+
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            Based on the active alert count returned by the backend.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <span
+                                            className={`h-2.5 w-2.5 rounded-full ${
+                                                Number(analytics.activeSecurityAlerts || 0) > 0
+                                                    ? "bg-orange-500"
+                                                    : "bg-green-500"
+                                            }`}
+                                        />
+
+                                        <span className="text-sm font-semibold text-slate-700">
+                                            {Number(analytics.activeSecurityAlerts || 0) > 0
+                                                ? "Attention required"
+                                                : "No active alerts"}
+                                        </span>
+                                    </div>
                                 </div>
+                            </section>
+                        </>
+                    )}
 
-                            </div>
-
+                    {!loading && !analytics && !error && (
+                        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+                            <p className="font-semibold text-slate-800">
+                                No analytics available
+                            </p>
+                            <button
+                                onClick={fetchAnalytics}
+                                className="mt-4 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white"
+                            >
+                                Load Analytics
+                            </button>
                         </div>
-
-                    </>
-                )}
-
+                    )}
+                </div>
             </div>
-        </div>
-         < ToastContainer />
+
+            <ToastContainer position="top-right" autoClose={3000} />
         </Layout>
     );
 };

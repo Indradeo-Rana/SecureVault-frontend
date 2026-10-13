@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Edit3, KeyRound, Share2, Trash2 } from "lucide-react";
 
 function CredentialCard({ credential, onDelete , onShare}) {
   const navigate = useNavigate();
@@ -10,8 +11,8 @@ function CredentialCard({ credential, onDelete , onShare}) {
     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-2xl">
-            🔑
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+            <KeyRound size={23} aria-hidden="true" />
           </div>
 
           <div>
@@ -23,26 +24,29 @@ function CredentialCard({ credential, onDelete , onShare}) {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             onClick={onShare}
-            className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+            className="flex items-center gap-1.5 rounded-lg bg-green-100 px-3 py-2 text-green-700 hover:bg-green-200"
           >
+            <Share2 size={16} aria-hidden="true" />
             Share
           </button>
 
           <button
             onClick={() => navigate(`/edit-credential/${credential.id}`)}
-            className="px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
+            className="flex items-center gap-1.5 rounded-lg bg-yellow-100 px-3 py-2 text-yellow-700 hover:bg-yellow-200"
           >
-            ✏ Edit
+            <Edit3 size={16} aria-hidden="true" />
+            Edit
           </button>
 
           <button
             onClick={() => onDelete(credential.id)}
-            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+            className="flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-2 text-red-600 hover:bg-red-200"
           >
-            🗑 Delete
+            <Trash2 size={16} aria-hidden="true" />
+            Delete
           </button>
         </div>
       </div>

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
+import { ShieldCheck } from "lucide-react";
+ import API_BASE_URL from "../config/api";
 
 function SecuritySettings() {
 
@@ -50,8 +52,6 @@ function SecuritySettings() {
                     data.message || "Unable to load MFA settings."
                 );
             }
-
-            console.log("MFA setup response:", data);
 
             /*
              * IMPORTANT:
@@ -313,8 +313,8 @@ function SecuritySettings() {
 
                     <div className="flex items-center gap-3 mb-6">
 
-                        <div className="w-11 h-11 rounded-lg bg-blue-100 flex items-center justify-center text-xl">
-                            🛡️
+                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                            <ShieldCheck size={22} aria-hidden="true" />
                         </div>
 
                         <div>
